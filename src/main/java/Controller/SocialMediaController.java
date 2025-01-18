@@ -34,6 +34,10 @@ public class SocialMediaController {
         app.post("login", this::loginHandler);
         app.post("messages",this::sendmessageHandler);
         app.get("messages",this::getallmessageHandler);
+        app.get("messages/{message_id}",this::getonemessageHandler);
+        app.delete("messages/{message_id}", this::deletemessageHandler);
+        app.patch("messages/{message_id}", this::updatemessageHandler);
+        app.get("accounts/{account_id}/messages",this::getallmessageaccountHandler);
         return app;
     }
 
@@ -77,10 +81,40 @@ public class SocialMediaController {
             context.status(400);
         }
     }
-    private void getallmessageHandler(Context context) throws JsonProcessingException{
+    private void getallmessageHandler(Context context){
         List<Message> createdMessage=messageService.getallMessage();
         context.json(createdMessage).status(200);
         
+    }
+    private void getonemessageHandler(Context context) {
+        Message message=messageService.getoneMessage(context.pathParam("message_id"));
+        if(message!=null)
+            context.json(message).status(200);
+        else
+            context.status(200).result("");
+    }
+    private void deletemessageHandler(Context context) {
+        Message deletedMessage=messageService.deleteMessage(context.pathParam("message_id"));
+        if (deletedMessage!=null){
+        context.json(deletedMessage).status(200);
+        }
+        else
+            context.status(200).result("");
+    }
+    private void updatemessageHandler(Context context) throws JsonProcessingException{
+        ObjectMapper mapper = new ObjectMapper();
+        Message message=mapper.readValue(context.body(), Message.class);
+        Message updatedMessage=messageService.updateMessage(context.pathParam("message_id"), message);
+        if (updatedMessage!=null){
+            context.json(updatedMessage).status(200);
+        }
+        else{
+            context.status(400).result("");;
+        }
+    }
+    private void getallmessageaccountHandler(Context context) {
+        List<Message> createdMessage=messageService.getallmessageAccount(context.pathParam("account_id"));
+        context.json(createdMessage).status(200);
     }
     private void exampleHandler(Context context) {
         context.json("sample text");
